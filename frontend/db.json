@@ -1,0 +1,53 @@
+{
+  "transactions": [
+    {
+      "id": "1",
+      "type": "income",
+      "name": "Paycheck",
+      "amount": 2500
+    },
+    {
+      "id": "2",
+      "type": "expense",
+      "name": "Groceries",
+      "amount": 120
+    },
+    {
+      "id": "3",
+      "type": "expense",
+      "name": "Rent",
+      "amount": 1100
+    },
+    {
+      "id": "4",
+      "type": "income",
+      "name": "Freelance Design",
+      "amount": 450
+    },
+    {
+      "id": "5",
+      "type": "expense",
+      "name": "Streaming Subscription",
+      "amount": 15
+    },
+    {
+      "id": "RQay_AARd7I",
+      "type": "expense",
+      "name": "Delivery",
+      "amount": 25.65
+    },
+    {
+      "id": "9pluqECio3M",
+      "type": "income",
+      "name": "Fishing",
+      "amount": 200
+    },
+    {
+      "type": "expense",
+      "name": "Shopping",
+      "amount": 89.35,
+      "id": "-6IZeY0UHtU"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
