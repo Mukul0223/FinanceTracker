@@ -1,21 +1,15 @@
 const mongoose = require('mongoose')
 
-mongoose.set('strictQuery', false)
-
-const url = process.env.MONGODB_URI
-
-console.log('connecting to', url)
-mongoose.connect(url, { family: 4 })
-  .then(result => {
-    console.log('connected to Mongodb')
-  })
-  .catch(error => {
-    console.log('error connecting to Mongodb:', error.message)
-  })
-
 const transactionSchema = new mongoose.Schema({
-  type: String,
-  name: String,
+  type: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    minLength: 5,
+    required: true
+  },
   amount: Number,
 })
 

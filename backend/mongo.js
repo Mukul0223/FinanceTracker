@@ -22,12 +22,12 @@ const transactionSchema = new mongoose.Schema({
 const Transaction = mongoose.model('Transaction', transactionSchema)
 
 const transaction = new Transaction({
-  "type": "expense",
-  "name": "Rent",
-  "amount": 1100
+  'type': 'expense',
+  'name': 'Rent',
+  'amount': 1100
 })
 
-transaction.save().then(result => {
+transaction.save().then(() => {
   console.log('transaction saved!')
   mongoose.connection.close()
 })
