@@ -1,38 +1,10 @@
+require('dotenv').config()
 const express = require('express')
+const Transaction = require('./models/transaction')
+
 const app = express()
 
-let transactions = [
-  {
-    "id": "1",
-    "type": "income",
-    "name": "Paycheck",
-    "amount": 2500
-  },
-  {
-    "id": "2",
-    "type": "expense",
-    "name": "Groceries",
-    "amount": 120
-  },
-  {
-    "id": "3",
-    "type": "expense",
-    "name": "Rent",
-    "amount": 1100
-  },
-  {
-    "id": "4",
-    "type": "income",
-    "name": "Freelance Design",
-    "amount": 450
-  },
-  {
-    "id": "5",
-    "type": "expense",
-    "name": "Streaming Subscription",
-    "amount": 15
-  }
-]
+let transactions = []
 
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method)
@@ -42,42 +14,48 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
-app.use(requestLogger)
 app.use(express.json())
+app.use(requestLogger)
 
+// HOME
 app.get('/', (request, response) => {
   const now = new Date().toLocaleString()
   response.send(`<h1>Hello world! ${now}</h1>`)
 })
 
+// GET ALL
 app.get('/api/transactions', (request, response) => {
-  response.json(transactions)
+  Transaction.find({}).then(transactions => {
+    response.json(transactions)
+  })
+    .catch(error => {
+      console.log(error)
+      response.status(500).end()
+  })
 })
 
-app.get('/api/transactions/:id', (request, response) => {
-  const id = request.params.id
-  const transaction = transactions.find(t => t.id === id)
-
-  if (transaction) {
-    response.json(transaction)
-  } else {
-    response.status(404).end()
-  }
+// GET ID
+app.get('/api/transactions/:id', (request, response, next) => {
+  Transaction.findById(request.params.id)
+    .then(transaction => {
+      if (transaction) {
+        response.json(transaction)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
-app.delete('/api/transactions/:id', (request, response) => {
-  const id = request.params.id
-  transactions = transactions.filter(t => t.id !== id)
-
-  response.status(204).end()
+// DELETE
+app.delete('/api/transactions/:id', (request, response, next) => {
+  Transaction.findByIdAndDelete(request.params.id).then(result => {
+    response.status(204).end()
+  })
+  .catch(error => next(error))
 })
 
-const generateId = () => {
-  const maxId = transactions.length > 0 ? Math.max(...transactions.map(t => Number(t.id))) : 0
-
-  return String(maxId + 1)
-}
-
+// POST 
 app.post('/api/transactions', (request, response) => {
   const body = request.body
 
@@ -89,16 +67,32 @@ app.post('/api/transactions', (request, response) => {
     return response.status(400).json({ error: 'description/name missing' })
   }
 
-  const transaction = {
-    id: generateId(),
+  const transaction = new Transaction({
     type: body.type,
     name: body.name,
     amount: Number(body.amount)
-  }
+  })
 
-  transactions = transactions.concat(transaction)
+  transaction.save().then((savedTransaction) => {
+    response.json(savedTransaction)
+  })
+})
 
-  response.json(transaction)
+app.put('/api/transactions/:id', (request, response, next) => {
+  const { name, amount } = request.body
+
+  Transaction.findById(request.params.id).then(transaction => {
+    if (!transaction) {
+      return response.status(404).end()
+    }
+    transaction.name = name
+    transaction.amount = amount
+
+    return transaction.save().then((updatedTransaction) => {
+      response.json(updatedTransaction)
+    })
+  })
+  .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
@@ -106,6 +100,17 @@ const unknownEndpoint = (request, response) => {
 }
 
 app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CasrError') {
+    return response.status(400).send({ error: 'malformatted id '})
+  }
+
+  next(error)
+}
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
