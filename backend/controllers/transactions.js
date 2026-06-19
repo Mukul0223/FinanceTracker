@@ -7,7 +7,7 @@ transactionsRouter.get('/', (req, res) => {
 })
 
 // GET A SINGLE TRANSACTION
-transactionsRouter.get('./:id', (req, res, next) => {
+transactionsRouter.get('/:id', (req, res, next) => {
   Transaction.findById(req.params.id).then(transaction => {
     if (transaction) {
       res.json(transaction)
@@ -28,7 +28,7 @@ transactionsRouter.post('/', (req, res, next) => {
     amount: body.amount
   })
 
-  transaction.save().then(savedTransaction => res.json(savedTransaction)).catch(error => next(error))
+  transaction.save().then(savedTransaction => res.status(201).json(savedTransaction)).catch(error => next(error))
 })
 
 // DELETE
