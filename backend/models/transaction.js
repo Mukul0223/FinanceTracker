@@ -11,6 +11,10 @@ const transactionSchema = new mongoose.Schema({
     required: true
   },
   amount: Number,
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 })
 
 transactionSchema.set('toJSON', {

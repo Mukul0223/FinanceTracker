@@ -1,39 +1,50 @@
 const transactionsRouter = require('express').Router()
 const Transaction = require('../models/transaction')
+const User = require('../models/user')
 
 // GET ALL TRANSACTION
-transactionsRouter.get('/', (req, res) => {
-  Transaction.find({}).then(transactions => res.json(transactions))
+transactionsRouter.get('/', async (req, res) => {
+  const transactions = await Transaction.find({})
+  res.json(transactions)
 })
 
 // GET A SINGLE TRANSACTION
-transactionsRouter.get('/:id', (req, res, next) => {
-  Transaction.findById(req.params.id).then(transaction => {
-    if (transaction) {
-      res.json(transaction)
-    } else {
-      res.status(404).end()
-    }
-  })
-    .catch(error => next(error))
+transactionsRouter.get('/:id', async(req, res) => {
+  const transaction = await Transaction.findById(req.params.id)
+  if (transaction) {
+    res.json(transaction)
+  } else {
+    res.status(404).end()
+  }
 })
 
 // POST
-transactionsRouter.post('/', (req, res, next) => {
+transactionsRouter.post('/', async(req, res) => {
   const body = req.body
+  const user = await User.findById(body.userId)
+
+  if (!user) {
+    return res.status(400).json({ error: 'userId missing or not valid' })
+  }
 
   const transaction = new Transaction({
     type: body.type,
     name: body.name,
-    amount: body.amount
+    amount: body.amount,
+    user: user._id
   })
 
-  transaction.save().then(savedTransaction => res.status(201).json(savedTransaction)).catch(error => next(error))
+  const savedTransaction = await transaction.save()
+  user.transactions = user.transactions.concat(savedTransaction._id)
+  await user.save()
+
+  res.status(201).json(savedTransaction)
 })
 
 // DELETE
-transactionsRouter.delete('/:id', (req, res, next) => {
-  Transaction.findByIdAndDelete(req.params.id).then(() => res.status(204).end()).catch(error => next(error))
+transactionsRouter.delete('/:id', async(req, res) => {
+  await Transaction.findByIdAndDelete(req.params.id)
+  res.status(204).end()
 })
 
 // UPDATE TRANSACTION

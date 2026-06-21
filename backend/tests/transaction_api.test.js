@@ -62,10 +62,14 @@ describe('when there is inititally some transactions saved', () => {
 
   describe('addition of new transaction', async () => {
     test('succeeds with valid data', async () => {
+      const users = await helper.usersInDb()
+      const userForTransaction = users[0]
+
       const newTransaction = {
         type: 'income',
         name: 'fishing',
-        amount: 125.65
+        amount: 125.65,
+        userId: userForTransaction.id
       }
 
       await api
