@@ -1,6 +1,7 @@
 const transactionsRouter = require('express').Router()
 const Transaction = require('../models/transaction')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 // GET ALL TRANSACTION
 transactionsRouter.get('/', async (req, res) => {
@@ -18,10 +19,22 @@ transactionsRouter.get('/:id', async(req, res) => {
   }
 })
 
+const getTokenFrom = req => {
+  const authorization = req.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
+
 // POST
 transactionsRouter.post('/', async(req, res) => {
   const body = req.body
-  const user = await User.findById(body.userId)
+  const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)
+  if (!decodedToken) {
+    return res.status(401).json({ error: 'token invalid' })
+  }
+  const user = await User.findById(decodedToken.id)
 
   if (!user) {
     return res.status(400).json({ error: 'userId missing or not valid' })
