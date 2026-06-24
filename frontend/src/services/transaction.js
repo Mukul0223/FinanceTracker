@@ -1,14 +1,27 @@
 import axios from 'axios'
 const baseUrl = '/api/transactions'
 
-const getAll = () => {
-  const request = axios.get(baseUrl)
-  return request.then(response => response.data)
+let token = null
+
+const setToken = newToken => {
+  token = `Bearer ${newToken}`
 }
 
-const create = newObject => {
-  const request = axios.post(baseUrl, newObject)
-  return request.then(response => response.data)
+const getAll = async () => {
+  const config = {
+    headers: { Authorization: token }
+  }
+  const response = await axios.get(baseUrl, config)
+  return response.data
+}
+
+const create = async newObject => {
+  const config = {
+    headers: { Authorization: token }
+  }
+  
+  const response = await axios.post(baseUrl, newObject, config)
+  return response.data
 }
 
 const update = (id, newObject) => {
@@ -20,4 +33,4 @@ const update = (id, newObject) => {
 //   axios.delete(`${baseUrl}/${id}`)
 // }
 
-export default {getAll, create, update}
+export default {getAll, create, update, setToken}

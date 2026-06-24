@@ -3,9 +3,21 @@ const Transaction = require('../models/transaction')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 
+const getTokenFrom = req => {
+  const authorization = req.get('authorization')
+  if (authorization && authorization.startsWith('Bearer ')) {
+    return authorization.replace('Bearer ', '')
+  }
+  return null
+}
+
 // GET ALL TRANSACTION
 transactionsRouter.get('/', async (req, res) => {
-  const transactions = await Transaction.find({})
+  const decodedToken = jwt.verify(getTokenFrom(req), process.env.SECRET)
+  if (!decodedToken) {
+    return res.status(401).json({ error: 'token invalid' })
+  }
+  const transactions = await Transaction.find({ user: decodedToken.id })
   res.json(transactions)
 })
 
@@ -19,13 +31,6 @@ transactionsRouter.get('/:id', async(req, res) => {
   }
 })
 
-const getTokenFrom = req => {
-  const authorization = req.get('authorization')
-  if (authorization && authorization.startsWith('Bearer ')) {
-    return authorization.replace('Bearer ', '')
-  }
-  return null
-}
 
 // POST
 transactionsRouter.post('/', async(req, res) => {
